@@ -1,0 +1,20 @@
+# Credenciales y entornos locales: nunca se suben.
+.env
+.env.*
+!.env.example
+.secrets/
+*.p8
+*.pem
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Datos: se regeneran desde Snowflake con src/datos.py (hash registrado en MLflow).
+data/
+
+# Material del curso: no se redistribuye.
+CD_PSet_*.pdf
+
+# Registro local de MLflow fuera de Docker (no debería crearse si MLFLOW_TRACKING_URI está definido).
+mlruns/
+mlartifacts/
