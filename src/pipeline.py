@@ -2,9 +2,8 @@
 
     from src.pipeline import construir_features, dividir, preparacion, pliegues
 
-Mismo contrato que `preparacion_taxis.py` de los laboratorios: los notebooks
-importan estas funciones en vez de copiarlas, así todos los experimentos usan
-exactamente las mismas features y la misma preparación.
+Los notebooks importan estas funciones en vez de copiarlas, así todos los
+experimentos usan exactamente las mismas features y la misma preparación.
 
 Regla de no fuga: el modelo pronostica cada uno de los 16 días posteriores a un
 corte. Toda feature derivada de ventas o transacciones usa solo datos de
@@ -144,7 +143,7 @@ def dividir(datos, columnas_extra=(), inicio_prueba=INICIO_PRUEBA, con_promocion
 
 
 def preparacion(con_promocion=False):
-    """Igual que en los laboratorios. Diferencias, todas justificadas en el notebook 02:
+    """ColumnTransformer con imputación, escalado y one-hot. Ajustes, justificados en el notebook 02:
     - numéricas: el imputador agrega indicadores de faltante (series jóvenes sin rezagos);
     - categóricas: las categorías con < 0,1 % de las filas se agrupan en 'infrecuente'
       (ITEM_CLASS tiene 95 clases, varias con pocas series)."""

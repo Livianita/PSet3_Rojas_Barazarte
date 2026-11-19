@@ -82,14 +82,14 @@ Dos extracciones independientes producen la misma huella.
 
 Ejecutar cada uno con **Restart** y **Run All**, en este orden, con MLflow levantado:
 
-| Notebook | Etapa | Tiempo medido |
+| Notebook | Etapa | Tiempo medido (CPU de un portátil) |
 |---|---|---|
-| `notebooks/01_eda.ipynb` | Exploración de la OBT y hallazgos | |
-| `notebooks/02_features.ipynb` | Features derivadas, prueba de no fuga y ablación de promociones | |
-| `notebooks/03_baseline_candidatos.ipynb` | Líneas base, 5 familias de candidatos y LLM por prompting | |
-| `notebooks/04_tuning.ipynb` | Ajuste con Optuna de los 3 mejores candidatos (90 corridas hijas) | ~10 h |
-| `notebooks/05_seleccion.ipynb` | Políticas de pedido, selección por métrica de negocio, prueba y Model Registry | ~1,5 h |
-| `notebooks/06_reproducir_champion.ipynb` | Kernel limpio: carga `@champion` y reproduce sus métricas de prueba | |
+| `notebooks/01_eda.ipynb` | Exploración de la OBT y hallazgos | 1 min |
+| `notebooks/02_features.ipynb` | Features derivadas, prueba de no fuga y ablación de promociones | 1 min |
+| `notebooks/03_baseline_candidatos.ipynb` | Líneas base, 5 familias de candidatos y LLM por prompting | 2,0 h |
+| `notebooks/04_tuning.ipynb` | Ajuste con Optuna de los 3 mejores candidatos (90 corridas hijas) | 8,2 h |
+| `notebooks/05_seleccion.ipynb` | Políticas de pedido, selección por métrica de negocio, prueba y Model Registry | 1,3 h |
+| `notebooks/06_reproducir_champion.ipynb` | Kernel limpio: carga `@champion` y reproduce sus métricas de prueba | 1 min |
 
 El LLM del notebook 03 no usa API: el prompt (`docs/llm/prompt_llm.txt`) se pegó a mano en un chat y la respuesta
 quedó en `docs/llm/respuesta_llm.json`. El notebook solo la evalúa.
@@ -97,20 +97,27 @@ quedó en `docs/llm/respuesta_llm.json`. El notebook solo la evalúa.
 ## 5. Resultado
 
 **Criterio de selección:** gana el modelo con la mejor **métrica de negocio**, el costo de la regla de reposición
-*newsvendor* del PSet 1 (Co · sobrantes + Cu · faltantes, vida útil de un día), medido en la validación. El escenario
+*newsvendor* diseñada para este PSet (Co · sobrantes + Cu · faltantes, vida útil de un día), medido en la validación. El escenario
 principal es Co:Cu = 1:3: faltar cuesta el triple que sobrar. Como el pedido óptimo es el cuantil
 q = Cu/(Cu+Co) = 0,75 de la demanda, los modelos finales pronostican ese cuantil directamente.
 
-| Alias en `favorita-perecederos-modelo` | Modelo | Costo prueba 1:3 vs media 28 días | Merma | Cobertura | RMSLE prueba |
+**Meta de negocio:** al menos 5 % de ahorro de costo en 1:3 frente a la media de 28 días con stock de seguridad, en la
+validación y en la prueba. El champion la cumple: 16,7 % en validación y 12,0 % en la prueba.
+
+| Alias en `favorita-perecederos-modelo` | Modelo | Ahorro de costo en prueba 1:3 vs media 28 días | Merma | Cobertura | RMSLE prueba |
 |---|---|---|---|---|---|
-| `@champion` | Chronos-Bolt (small) cuantil 0,75 | **−12,0 %** | 34,2 % | 89,1 % | 0,783 |
-| `@challenger` | Gradient boosting con pérdida de cuantil 0,75 | −10,4 % | 34,4 % | 88,7 % | 0,808 |
-| referencia | Gradient boosting ajustado por RMSLE | −0,4 % | 35,9 % | 86,3 % | 0,648 |
+| `@champion` | Chronos-Bolt (small) cuantil 0,75 | **12,0 %** | 34,2 % | 89,1 % | 0,783 |
+| `@challenger` | Gradient boosting con pérdida de cuantil 0,75 | 10,4 % | 34,4 % | 88,7 % | 0,808 |
+| referencia | Gradient boosting ajustado por RMSLE | 0,4 % | 35,9 % | 86,3 % | 0,648 |
 | referencia | Media de 28 días + stock de seguridad | — | 31,2 % | 82,5 % | 0,684 |
 
 La salida del modelo registrado es el **pedido sugerido** en unidades por tienda–producto–día. Su RMSLE es mayor que
 el del modelo por RMSLE a propósito: pide por encima de la mediana porque faltar cuesta más. El detalle y las
 limitaciones están en el notebook 05 (§9) y en el memo.
+
+**Versión del código.** Las 109 corridas de MLflow registran el commit `6eb6c51`, con el que se ejecutaron. El commit de
+entrega agrega el memo y cambia solo texto (markdown, comentarios), el formato de dos figuras y una dependencia no
+usada; los resultados no cambian.
 
 ## Estructura
 
@@ -124,3 +131,15 @@ limitaciones están en el notebook 05 (§9) y en el memo.
 | `docs/llm/` | Prompt, series y respuesta del LLM por prompting (notebook 03) |
 | `docs/PSet3_memo_Rojas_Barazarte.pdf` | Documento técnico |
 | `mlflow/` | Imagen del servidor de tracking |
+
+## Uso de IA
+
+Se usó IA generativa (Claude, de Anthropic) como apoyo durante todo el proyecto:
+
+- Guía para resolver los ejercicios y revisión de conceptos.
+- Troubleshooting y depuración de código, y resolución de problemas de conexión (Snowflake, MLflow, Docker).
+- Consultas de investigación.
+- Redacción de los textos de los notebooks, del README y del borrador del memo.
+
+Las decisiones y criterios de diseño (métricas, esquema de validación, modelos, criterio de selección del champion) y la
+revisión final de todos los resultados son de la autora.

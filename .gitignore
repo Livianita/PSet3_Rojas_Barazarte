@@ -18,3 +18,8 @@ CD_PSet_*.pdf
 # Registro local de MLflow fuera de Docker (no debería crearse si MLFLOW_TRACKING_URI está definido).
 mlruns/
 mlartifacts/
+
+# Borradores y archivos de editor: se entrega el PDF del memo.
+docs/*.docx
+~$*
+.vscode/

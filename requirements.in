@@ -16,5 +16,4 @@ cryptography
 python-dotenv
 ipykernel
 nbconvert
-anthropic
 chronos-forecasting
